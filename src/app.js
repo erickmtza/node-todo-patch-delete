@@ -91,8 +91,34 @@ app
   .get((req, res, next) => {
     res.json(serializeTodo(res.todo))
   })
-  .patch(/* Your code here */)
-  .delete(/* Your code here */)
+  .patch(jsonParser, (req, res, next) => {
+    const { title, completed = false} = req.body
+    const todoUpdate = { title }
+
+    for (const [key, value ] of Object.entries(todoUpdate))
+    if (value == null) {
+      return res.status(400).end()
+    }
+    
+    todoUpdate.completed = completed
+
+    TodoService.updateTodo(req.app.get('db'), req.params.todo_id, todoUpdate)
+      .then(dt => {
+        res
+        .status(200)
+        .json(serializeTodo(dt[0]))
+      })
+      .catch(next)
+   
+  })
+  .delete((req, res, next) => {
+    TodoService.deleteTodo(req.app.get('db'), req.params.todo_id)
+      .then(data => {
+        res
+          .status(204)
+          .end()
+      })
+  })
 
 
 app.use(errorHandler)
